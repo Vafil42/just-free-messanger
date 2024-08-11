@@ -1,23 +1,45 @@
-import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
 import Navigation from "@/components/Navigation";
-import { useColorScheme } from "react-native";
-import { StatusBar } from "expo-status-bar";
 import { EventBus } from "@/event_bus/EventBus";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Storage } from "@/db/Storage";
+import { RequestManager } from "@/request_manager/RequestManager";
+import { useEffect, useReducer, useState } from "react";
+import { getItem } from "expo-secure-store";
+import AppWrapper from "@/components/AppWrapper";
+import Authorization from "@/components/Authorization";
+import { useForceUpdateProvider } from "@/hooks/useForceUpdate";
 
 export const eventBus = new EventBus();
+export const storage = new Storage(eventBus);
+export const requestManager = new RequestManager(eventBus);
 
 export default function RootLayout() {
-  const theme = useColorScheme() === "dark" ? MD3DarkTheme : MD3LightTheme;
+  const [authorized, setAuthorized] = useState(false);
+  const [, reducer] = useReducer((x) => x + 1, 0);
+  const ForceUpdateProvider = useForceUpdateProvider(reducer);
+
+  useEffect(() => {
+    if (getItem("access_token")) {
+      setAuthorized(true);
+      return;
+    }
+
+    setAuthorized(false);
+  });
+
+  if (!authorized)
+    return (
+      <AppWrapper>
+        <ForceUpdateProvider>
+          <Authorization />
+        </ForceUpdateProvider>
+      </AppWrapper>
+    );
 
   return (
-    <>
-      <StatusBar style={theme.dark ? "light" : "dark"} />
-      <PaperProvider theme={theme}>
-        <SafeAreaProvider>
-          <Navigation items={[{ path: "index", name: "Home", icon: "home" }]} />
-        </SafeAreaProvider>
-      </PaperProvider>
-    </>
+    <AppWrapper>
+      <ForceUpdateProvider>
+        <Navigation items={[{ path: "index", name: "Home", icon: "home" }]} />
+      </ForceUpdateProvider>
+    </AppWrapper>
   );
 }

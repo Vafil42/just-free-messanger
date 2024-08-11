@@ -3,6 +3,7 @@ import { drizzle, ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 import { migrate } from "drizzle-orm/expo-sqlite/migrator";
 import migration from "../drizzle/migrations";
 import { useEffect, useState } from "react";
+import { EventBus } from "@/event_bus/EventBus";
 
 const DB = "db.db";
 
@@ -14,7 +15,7 @@ export class Storage {
   private db?: ExpoSQLiteDatabase<Record<string, any>>;
   private callbacks: { event: string; callback: (...args: any) => void }[] = [];
 
-  constructor() {}
+  constructor(private eventBus: EventBus) {}
 
   async init() {
     await this.start("init_loading");
@@ -64,31 +65,3 @@ export class Storage {
 }
 
 var storage: Storage;
-
-export const useInitStorage = () => {
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!storage) storage = new Storage();
-    storage.subscribe("init_loading", setLoading);
-    if (!storage.inited) {
-      storage.init();
-    }
-  }, [setLoading]);
-
-  return [loading, storage] as const;
-};
-
-export const useStorage = () => {
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!storage || !storage.inited) {
-      setLoading(true);
-      return;
-    }
-    storage.subscribe("loading", setLoading);
-  }, []);
-
-  return [loading, storage] as const;
-};

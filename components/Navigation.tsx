@@ -1,12 +1,23 @@
 import { Drawer } from "expo-router/drawer";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useTheme } from "react-native-paper";
+import {
+  DrawerLayout,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
+import { Button, Divider, useTheme } from "react-native-paper";
 import {
   ThemeProvider,
   DarkTheme,
   DefaultTheme,
 } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useCallback } from "react";
+import { deleteItemAsync, getItemAsync } from "expo-secure-store";
+import {
+  DrawerContentScrollView,
+  DrawerItem,
+  DrawerItemList,
+} from "@react-navigation/drawer";
+import { useForceUpdate } from "@/hooks/useForceUpdate";
 
 interface NavigationItem {
   path: string;
@@ -21,6 +32,14 @@ interface NavigationProps {
 const Navigation = (props: NavigationProps) => {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const forceUpdate = useForceUpdate();
+
+  const onExitClick = useCallback(async () => {
+    console.log("exit", forceUpdate);
+    await deleteItemAsync("access_token");
+    console.log(await getItemAsync("access_token"));
+    forceUpdate?.();
+  }, []);
 
   return (
     <GestureHandlerRootView>
@@ -38,6 +57,12 @@ const Navigation = (props: NavigationProps) => {
               paddingRight: insets.right,
             },
           }}
+          drawerContent={(props) => (
+            <DrawerContentScrollView {...props}>
+              <DrawerItemList {...props} />
+              <DrawerItem label="Exit" onPress={onExitClick} />
+            </DrawerContentScrollView>
+          )}
         >
           {props.items.map((item) => (
             <Drawer.Screen

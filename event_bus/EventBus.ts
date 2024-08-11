@@ -1,11 +1,4 @@
-export type Event = "open_chat";
-export type Listener = (
-  value?: EventData,
-) => void | EventData | Promise<void | EventData>;
-
-export interface EventData {
-  data: any;
-}
+export type Listener = (value: any) => void | any | Promise<void | any>;
 
 interface SubsriptionOptions {
   disposable?: boolean;
@@ -18,11 +11,11 @@ interface Subsription {
 }
 
 export class EventBus {
-  private subsriptions: Map<Event, Subsription[]> = new Map();
+  private subsriptions: Map<string, Subsription[]> = new Map();
 
   constructor() {}
 
-  subscribe(event: Event, listener: Listener, options?: SubsriptionOptions) {
+  subscribe(event: string, listener: Listener, options?: SubsriptionOptions) {
     if (!this.subsriptions.has(event)) {
       this.subsriptions.set(event, []);
     }
@@ -30,7 +23,7 @@ export class EventBus {
     this.subsriptions.get(event)?.push({ listener, options });
   }
 
-  emit(event: Event, value?: EventData) {
+  emit(event: string, value?: any) {
     if (!this.subsriptions.has(event)) {
       return;
     }
@@ -54,7 +47,7 @@ export class EventBus {
     }
   }
 
-  remove(event: Event, subscription: Subsription) {
+  remove(event: string, subscription: Subsription) {
     if (!this.subsriptions.has(event)) {
       return;
     }

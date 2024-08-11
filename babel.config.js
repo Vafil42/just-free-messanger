@@ -4,7 +4,6 @@ module.exports = function (api) {
     presets: ["babel-preset-expo"],
     plugins: [["inline-import", { extensions: [".sql"] }]],
     assumptions: {
-      setPublicClassFields: false,
       privateFieldsAsSymbols: true,
     },
   };
